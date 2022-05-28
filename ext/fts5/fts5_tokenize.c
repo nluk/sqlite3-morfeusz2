@@ -556,6 +556,7 @@ static int fts5Morfeusz2Create(
         const char **azArg, int nArg,
         Fts5Tokenizer **ppOut
 ){
+    morfeusz_set_option(MORFOPT_PRAET, MORFEUSZ_PRAET_COMPOSITE);
     int rc = fts5UnicodeCreate(pUnused, azArg, nArg, ppOut);
     if(rc == SQLITE_OK){
         ((Unicode61Tokenizer*)*ppOut)->eRemoveDiacritic = FTS5_REMOVE_DIACRITICS_NONE;
@@ -595,10 +596,7 @@ static int xTokenMorfeusz2(
     char* pTokenCpy = (char*)sqlite3_malloc64((nToken + 1) * sizeof(char));
     if( pTokenCpy ){
         memcpy(pTokenCpy, pToken, nToken);
-        if(pTokenCpy[nToken] != '\0'){
-            //buffer was reused, terminate for morfeusz
-            pTokenCpy[nToken] = '\0';
-        }
+        pTokenCpy[nToken] = '\0';
         pInterp = morfeusz_analyse(pTokenCpy);
         sqlite3_free(pTokenCpy);
         while(pInterp->p != MORFEUSZ_NO_RESULT){

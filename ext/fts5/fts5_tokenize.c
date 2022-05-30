@@ -583,6 +583,7 @@ static int lemmaCmp(const char* pLemmaA, const char* pLemmaB){
 
 static int xTokenMorfeusz2(
         void* pCtx,
+        int flags,
         const char* pToken,
         int nToken,
         int is,
@@ -597,7 +598,7 @@ static int xTokenMorfeusz2(
     if( pTokenCpy ){
         memcpy(pTokenCpy, pToken, nToken);
         pTokenCpy[nToken] = '\0';
-        pInterp = morfeusz_analyse(pTokenCpy);
+        pInterp = (flags & FTS5_TOKENIZE_DOCUMENT ? morfeusz_analyse: morfeusz_analyse_synchronized)(pTokenCpy);
         sqlite3_free(pTokenCpy);
         while(pInterp->p != MORFEUSZ_NO_RESULT){
             if(strcmp(pInterp->interp, MORFEUSZ_IGNORE) == 0){
@@ -629,7 +630,7 @@ static int xTokenMorfeusz2(
 static int fts5Morfeusz2Tokenize(
         Fts5Tokenizer *pTokenizer,
         void *pCtx,
-        int iUnused,
+        int flags,
         const char *pText, int nText,
         int (*xToken)(void*, int, const char*, int nToken, int iStart, int iEnd)
 ){
@@ -645,7 +646,6 @@ static int fts5Morfeusz2Tokenize(
     int nFold = p->nFold;
     const char *pEnd = &aFold[nFold-6];
 
-    UNUSED_PARAM(iUnused);
 
     /* Each iteration of this loop gobbles up a contiguous run of separators,
     ** then the next token.  */
@@ -721,7 +721,7 @@ static int fts5Morfeusz2Tokenize(
             ie = zCsr - (unsigned char*)pText;
         }
 
-        rc = xTokenMorfeusz2(pCtx, aFold, zOut-aFold, is, ie, xToken);
+        rc = xTokenMorfeusz2(pCtx, flags, aFold, zOut-aFold, is, ie, xToken);
     }
 
     tokenize_done:
